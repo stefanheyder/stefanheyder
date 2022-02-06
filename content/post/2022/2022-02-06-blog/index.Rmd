@@ -1,0 +1,11 @@
+---
+title: "My Blog"
+author: "Stefan Heyder"
+date: "2022-02-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+This is my first post. My goal with this blog is to have a minimalist blog where I can publish data analyses that interest me.

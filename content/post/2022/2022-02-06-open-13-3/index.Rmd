@@ -1,0 +1,96 @@
+---
+title: How much is a muscle-up worth?
+subtitle: Open 13.3
+author: Stefan 
+date: '2022-02-06'
+slug: open-13-3
+categories: [Open]
+tags: []
+---
+```{r, echo = F}
+knitr::opts_chunk$set(
+		echo = F,
+		warning = F,
+		message = F
+)
+suppressPackageStartupMessages({
+	library(here)
+	library(tidyverse)
+	library(grid)
+	library(scales)
+	library(lubridate)
+})
+```
+
+Here's a quick analysis of the 13.3 Open Workout. The workout is an AMRAP in 12 minutes of
+
+- 150 Wall balls (WB)
+- 90 Double-unders (DU)
+- 30 Muscle-ups (MU)
+
+I will look at RX scores only.
+
+The WOD comes with two movements that require technical skill: double-unders and muscle-ups so we'd expect these to be natural points where people stop.
+For example if you cannot perform a muscle-up, but can do wall balls and double-unders sufficiently well, you will hit 240 reps (150 wall balls, 90 double unders).
+
+This workout actually came with a tie-breaker: if two athletes hit 240 repetitions each, the one how did so earlier scores more points.
+But scoring that first muscle-up at rep 241 will put you above all others with 240 reps! How many points will this give you on the leaderboard?
+Well let's have a look at the scored repetitions from this workout:
+
+```{r}
+wod <- read_csv(here("data/wod_13.3.csv"))
+
+round_info <- function(reps, max_rounds, names) {
+	round_limits <- cumsum(c(0, rep(reps, max_rounds)))
+
+	tibble(
+			low = head(round_limits, -1) + 1,
+			up = round_limits[-1],
+			name = ordered(rep(names, max_rounds), levels = names)
+	)
+}
+
+reps <- c(150, 90, 30)
+max_rounds <- 2
+names <- c("WB", "DU", "MU")
+
+round_info <- round_info(reps, max_rounds, names)
+
+cols <- brewer_pal(palette = "Set2")(3)
+
+wod %>%
+		group_by(gender, scoreDisplay) %>%
+		summarize(n = n()) %>%
+		mutate(pct = n / sum(n) * 100) %>%
+		mutate(gender = ifelse(gender == "M", "male athletes", "female athletes")) %>%
+		ggplot(aes(scoreDisplay, pct)) +
+		geom_col() +
+		facet_wrap(~gender, nrow = 2, scales = "free_y", strip.position = "right") +
+		theme_minimal() +
+		xlab("reps") +
+		ylab("% athletes") +
+		geom_rect(aes(ymin = -Inf, ymax = Inf, xmin = low - .5, xmax = up + .5, fill = name), data = round_info, inherit.aes = F, alpha = .2) +
+		coord_cartesian(xlim = c(120, 280)) +
+		scale_fill_manual(name = "", values = cols)
+```
+
+That's a lot of athletes hitting the 240 mark, both for female and male athletes (though the effect is more pronounced for females, as muscle-ups typically also require a lot of upper-body strength).
+```{r}
+pct_total_240 <- wod %>%
+		count(gender, hit_240 = (scoreDisplay == 240)) %>%
+		mutate(gender = ifelse(gender == "M", "male", "female")) %>%
+		group_by(gender) %>%
+		summarise(total = n[2], `fraction [%]` = n[2] / sum(n) * 100)
+
+pct_total_240 %>%
+		knitr::kable(
+				format = 'html',
+				digits = 2,
+				caption = "Athletes scoring 150 WB + 90 DU",
+				table.attr = 'style="margin-left:auto;margin-right:auto"'
+		)
+```
+
+This is how much having at least one muscle-up (and making it through the 150 WB and 90 DU) were worth in 13.3: `r pct_total_240$total[1]` places for females and `r pct_total_240$total[2]` for males (there were a lot more male athletes in this open which explains why the fractions are so far apart).
+
+Stay tuned for more analyses leading up to the 2022 open!
