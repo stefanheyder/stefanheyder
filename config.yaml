@@ -31,3 +31,4 @@ markup:
   tableOfContents:
     ordered: yes
 ignoreErrors: ["error-missing-instagram-accesstoken"]
+ignoreFiles: ["\\.Rmd$", "\\.Rmarkdown$", "_cache$"]
