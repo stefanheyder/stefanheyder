@@ -93,4 +93,5 @@ pct_total_240 %>%
 
 This is how much having at least one muscle-up (and making it through the 150 WB and 90 DU) were worth in 13.3: `r pct_total_240$total[1]` places for females and `r pct_total_240$total[2]` for males (there were a lot more male athletes in this open which explains why the fractions are so far apart).
 
+
 Stay tuned for more analyses leading up to the 2022 open!
